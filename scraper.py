@@ -166,16 +166,19 @@ def fetch_tiktok_api(target_url: str, server_url: str = DEFAULT_SERVER_URL) -> d
                 user_agent = nav.get("user_agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15")
                 cookies = data_info.get("cookies", "")
 
+                req_headers = {
+                    "User-Agent": user_agent,
+                    "Accept": "application/json, text/plain, */*",
+                    "Referer": "https://www.tiktok.com/",
+                    "Sec-Fetch-Dest": "empty",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Site": "same-origin",
+                }
+                if cookies:
+                    req_headers["Cookie"] = cookies
+
                 req_kwargs = {
-                    "headers": {
-                        "User-Agent": user_agent,
-                        "Cookie": cookies,
-                        "Accept": "application/json, text/plain, */*",
-                        "Referer": "https://www.tiktok.com/",
-                        "Sec-Fetch-Dest": "empty",
-                        "Sec-Fetch-Mode": "cors",
-                        "Sec-Fetch-Site": "same-origin",
-                    },
+                    "headers": req_headers,
                     "timeout": 15,
                 }
                 if USE_CURL_CFFI:

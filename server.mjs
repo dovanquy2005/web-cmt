@@ -26,6 +26,7 @@ import { fileURLToPath } from "url";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { encode as encodeXGnarly } from "./xgnarly.mjs";
+import { getXBogus } from "./xbogus.mjs";
 
 // Use stealth plugin with default evasions
 puppeteer.use(StealthPlugin());
@@ -972,7 +973,8 @@ async function handleRequest(req, res) {
       res.end(
         JSON.stringify({
           status: "ok",
-          ready: isReady,
+          ready: true,
+          pureJsReady: true,
           initializing: isInitializing,
           initMethod: initMethod,
           lastInitTime: lastInitTime,
@@ -1074,19 +1076,16 @@ async function handleRequest(req, res) {
 
       let targetUrl = null;
       let userAgent = null;
-      let navigateTo = null;
 
       // Try to parse as JSON first
       try {
         const json = JSON.parse(body);
         if (json.url) targetUrl = json.url;
         if (json.userAgent) userAgent = json.userAgent;
-        if (json.navigateTo) navigateTo = json.navigateTo;
       } catch (e) {
-        // Body might be a direct URL string
         try {
-          new URL(body);
-          targetUrl = body;
+          new URL(body.trim());
+          targetUrl = body.trim();
         } catch (e2) {}
       }
 
@@ -1095,27 +1094,38 @@ async function handleRequest(req, res) {
         res.end(
           JSON.stringify({
             status: "error",
-            message:
-              'URL is required in body as JSON { "url": "...", "navigateTo": "...", "userAgent": "..." } or plain text URL',
+            message: 'URL is required in body as JSON { "url": "..." }',
           }),
         );
         return;
       }
 
-      const result = await generateSignedUrl(targetUrl, userAgent, navigateTo);
+      const effectiveUA = userAgent || DEFAULT_UA;
+      const urlObj = new URL(targetUrl);
+      urlObj.searchParams.delete("X-Bogus");
+      urlObj.searchParams.delete("X-Gnarly");
+      urlObj.searchParams.delete("msToken");
 
-      res.writeHead(200);
+      const queryString = urlObj.search.startsWith("?")
+        ? urlObj.search.slice(1)
+        : urlObj.search;
+
+      const xBogus = getXBogus(queryString, "", effectiveUA);
+      const xGnarly = encodeXGnarly(queryString, "", effectiveUA);
+
+      urlObj.searchParams.set("X-Bogus", xBogus);
+      urlObj.searchParams.set("X-Gnarly", xGnarly);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           status: "ok",
           data: {
-            signed_url: result.signedUrl,
-            "x-bogus": result.xBogus,
-            "x-gnarly": result.xGnarly,
-            "device-id": result.deviceId,
-            cookies: result.cookies,
+            signed_url: urlObj.toString(),
+            "x-bogus": xBogus,
+            "x-gnarly": xGnarly,
             navigator: {
-              user_agent: result.userAgent,
+              user_agent: effectiveUA,
               platform: "MacIntel",
               browser_language: "en-US",
               os: "mac",
