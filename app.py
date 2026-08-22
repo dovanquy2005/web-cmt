@@ -102,7 +102,8 @@ class ScrapeTask:
 
 @app.route("/")
 def index():
-    return render_template("index.html", google_client_id=GOOGLE_CLIENT_ID)
+    google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    return render_template("index.html", google_client_id=google_client_id)
 
 
 @app.route("/api/health")

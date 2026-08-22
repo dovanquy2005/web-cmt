@@ -1,6 +1,6 @@
 /**
  * TikTok Comments Web App - Client Logic & State Management
- * Includes: Google Identity Services, State Retention, Quota Management, Platform Switcher & Toast System
+ * Features: Google Identity Services, State Retention, Quota Management, Platform Switcher & Toast System
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrPkgName = document.getElementById('qrPkgName');
     const qrImage = document.getElementById('qrImage');
 
-    // App In-memory State
+    // In-memory App State
     let currentUser = null;
     let currentComments = [];
     let currentVideoId = '';
@@ -163,32 +163,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initGoogleAuth() {
         const clientId = (window.APP_CONFIG && window.APP_CONFIG.googleClientId) ? window.APP_CONFIG.googleClientId.trim() : '';
+        if (!clientId) return;
 
-        if (window.google && window.google.accounts && window.google.accounts.id && clientId) {
-            try {
-                window.google.accounts.id.initialize({
-                    client_id: clientId,
-                    callback: handleGoogleAuthCallback,
-                    auto_select: false
-                });
-
-                const container = document.getElementById('g_id_signin_container');
-                if (container) {
-                    container.innerHTML = '';
-                    window.google.accounts.id.renderButton(container, {
-                        theme: 'outline',
-                        size: 'large',
-                        type: 'standard',
-                        shape: 'pill',
-                        text: 'continue_with',
-                        logo_alignment: 'left',
-                        width: 280
+        let attempts = 0;
+        function tryRenderGoogleBtn() {
+            attempts++;
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                try {
+                    window.google.accounts.id.initialize({
+                        client_id: clientId,
+                        callback: handleGoogleAuthCallback,
+                        auto_select: false
                     });
+
+                    const container = document.getElementById('g_id_signin_container');
+                    if (container) {
+                        container.innerHTML = '';
+                        window.google.accounts.id.renderButton(container, {
+                            theme: 'outline',
+                            size: 'large',
+                            type: 'standard',
+                            shape: 'pill',
+                            text: 'continue_with',
+                            logo_alignment: 'left',
+                            width: 280
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Google GSI render error:', err);
                 }
-            } catch (err) {
-                console.warn('Google GSI Init error:', err);
+            } else if (attempts < 20) {
+                setTimeout(tryRenderGoogleBtn, 200);
             }
         }
+
+        tryRenderGoogleBtn();
     }
 
     async function handleGoogleAuthCallback(response) {
@@ -205,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentUser = data.user;
                 updateUserUI(true);
                 authModal.classList.add('hidden');
-                showToast(`🎉 Chào mừng ${currentUser.name}! Bạn nhận được ${currentUser.credits} lượt cào miễn phí.`, 'success');
+                showToast(`🎉 Chào mừng ${currentUser.name}! Bạn có ${currentUser.credits} lượt cào.`, 'success');
                 
                 // Khôi phục State & Kiểm tra hành động tải pending
                 handlePostLoginStateRetention();
