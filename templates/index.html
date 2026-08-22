@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Comments Downloader & Excel Exporter</title>
+    <meta name="description" content="Công cụ tải và xuất toàn bộ bình luận video TikTok ra file Excel hoàn toàn tự động, nhanh chóng và chính xác.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Background Gradient Glows -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="brand-badge">
+                <i class="fab fa-tiktok"></i> TikTok Comments Exporter
+            </div>
+            <h1 class="title">Tải & Xuất Bình Luận TikTok Ra Excel</h1>
+            <p class="subtitle">Nhập link video để cào toàn bộ bình luận gốc và câu trả lời chỉ trong vài giây</p>
+        </header>
+
+        <!-- Main Card Section -->
+        <main class="main-card">
+            <!-- Input Form -->
+            <form id="scrapeForm" class="scrape-form">
+                <div class="input-group">
+                    <div class="input-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="videoUrl" 
+                        name="url" 
+                        placeholder="Dán link video TikTok vào đây (vd: https://www.tiktok.com/@user/video/...)" 
+                        required 
+                        autocomplete="off"
+                    >
+                    <button type="button" id="pasteBtn" class="btn-icon" title="Dán từ Clipboard">
+                        <i class="fas fa-paste"></i>
+                    </button>
+                    <button type="button" id="clearBtn" class="btn-icon" title="Xóa">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Sample Link Fast Fill -->
+                <div class="quick-examples">
+                    <span class="quick-label">Mẫu thử:</span>
+                    <button type="button" class="btn-sample" data-url="https://www.tiktok.com/@batamheslayy/video/7676330375433571600">
+                        <i class="fas fa-play-circle"></i> Video Mẫu (112 Cmt)
+                    </button>
+                </div>
+
+                <!-- Options Grid -->
+                <div class="options-grid">
+                    <div class="option-item">
+                        <label for="maxComments"><i class="fas fa-list-ol"></i> Giới hạn bình luận:</label>
+                        <select id="maxComments" name="max_comments">
+                            <option value="0" selected>Toàn bộ (Tất cả)</option>
+                            <option value="50">50 bình luận đầu</option>
+                            <option value="100">100 bình luận đầu</option>
+                            <option value="300">300 bình luận đầu</option>
+                            <option value="500">500 bình luận đầu</option>
+                        </select>
+                    </div>
+
+                    <div class="option-item toggle-item">
+                        <label for="fetchReplies">
+                            <i class="fas fa-reply-all"></i> Lấy cả câu trả lời con (Replies)
+                        </label>
+                        <label class="switch">
+                            <input type="checkbox" id="fetchReplies" name="fetch_replies" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    <span class="btn-text"><i class="fas fa-bolt"></i> Bắt Đầu Tải Bình Luận</span>
+                    <span class="btn-spinner hidden"><i class="fas fa-spinner fa-spin"></i> Đang xử lý...</span>
+                </button>
+            </form>
+
+            <!-- Progress & Status Box -->
+            <div id="statusSection" class="status-section hidden">
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span id="progressStatus" class="progress-status"><i class="fas fa-spinner fa-spin"></i> Đang khởi tạo...</span>
+                        <span id="progressPercent" class="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progressBar" class="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Live Stats Counters -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-comments"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="statCount">0</div>
+                            <div class="stat-label">Bình luận thu thập</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-time"><i class="fas fa-stopwatch"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-number" id="statTime">0s</div>
+                            <div class="stat-label">Thời gian chạy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terminal Live Logs (Collapsible) -->
+                <div class="log-box">
+                    <div class="log-header">
+                        <span><i class="fas fa-terminal"></i> Nhật ký hoạt động</span>
+                        <button type="button" id="toggleLogBtn" class="btn-toggle-log">Thu gọn</button>
+                    </div>
+                    <div id="logConsole" class="log-console">
+                        <div class="log-line">Sẵn sàng nhận dữ liệu...</div>
+                    </div>
+                </div>
+
+                <!-- Success / Download Actions -->
+                <div id="downloadSection" class="download-section hidden">
+                    <div class="success-banner">
+                        <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="success-text">
+                            <h3>Thu Thập Dữ Liệu Hoàn Tất!</h3>
+                            <p>Đã tạo sẵn file Excel chuyên nghiệp với đầy đủ thông tin.</p>
+                        </div>
+                    </div>
+                    <a id="downloadBtn" href="#" class="btn-download">
+                        <i class="fas fa-file-excel"></i> Tải File Excel Ngay (.xlsx)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Real-time Preview Table -->
+            <div id="previewSection" class="preview-section hidden">
+                <div class="preview-header">
+                    <h3><i class="fas fa-eye"></i> Xem trước dữ liệu trực tiếp (<span id="previewCount">0</span> cmt)</h3>
+                </div>
+                <div class="table-container">
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Người dùng</th>
+                                <th>Nội dung bình luận</th>
+                                <th>Lượt thích</th>
+                                <th>Trả lời</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTbody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2026 TikTok Comments Scraper Tool • Tự động hóa 100% không giới hạn</p>
+        </footer>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+node_modules
+__pycache__
+.chrome-profile
+downloads/*.xlsx
+!downloads/.gitkeep
+.git
+.gitignore
+.vscode
+.idea
+*.log
