@@ -97,6 +97,8 @@ body {
 /* TOP NAVBAR & USER PROFILE                                         */
 /* ================================================================= */
 .navbar {
+    position: relative;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -190,7 +192,7 @@ body {
 .credit-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.3);
     padding: 6px 14px;
@@ -198,6 +200,7 @@ body {
     font-size: 0.85rem;
     font-weight: 700;
     color: #fbbf24;
+    white-space: nowrap;
 }
 
 .credit-count {
@@ -218,7 +221,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 4px;
+    margin-left: 2px;
     transition: transform 0.2s ease;
 }
 
@@ -229,6 +232,7 @@ body {
 /* User Dropdown */
 .user-dropdown-wrapper {
     position: relative;
+    z-index: 110;
 }
 
 .user-avatar-btn {
@@ -259,7 +263,7 @@ body {
 .nav-username {
     font-size: 0.9rem;
     font-weight: 600;
-    max-width: 120px;
+    max-width: 170px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -272,15 +276,15 @@ body {
 
 .user-dropdown-menu {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 8px);
     right: 0;
-    width: 230px;
+    width: 250px;
     background: #131b2e;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 10px 0;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-    z-index: 100;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 242, 254, 0.2);
+    z-index: 9999;
     animation: slideDown 0.2s ease;
 }
 
@@ -299,6 +303,9 @@ body {
 .dropdown-header strong {
     font-size: 0.9rem;
     color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dropdown-header span {
@@ -339,6 +346,8 @@ body {
 /* PLATFORM TABS SWITCHER                                            */
 /* ================================================================= */
 .platform-tabs {
+    position: relative;
+    z-index: 10;
     display: flex;
     gap: 12px;
     background: rgba(255, 255, 255, 0.03);
@@ -388,6 +397,8 @@ body {
 /* MAIN CARD SECTION                                                 */
 /* ================================================================= */
 .main-card {
+    position: relative;
+    z-index: 1;
     background: var(--bg-card);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
