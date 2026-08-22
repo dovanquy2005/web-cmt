@@ -18,6 +18,27 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+# Tự động đọc file .env hoặc .env.example vào os.environ
+def _load_env():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    for env_name in [".env", ".env.example"]:
+        env_path = os.path.join(base_dir, env_name)
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k = k.strip()
+                            v = v.strip().strip("'\"")
+                            if k not in os.environ and v:
+                                os.environ[k] = v
+            except Exception:
+                pass
+
+_load_env()
+
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", os.environ.get("SUPABASE_SERVICE_ROLE_KEY", os.environ.get("SUPABASE_ANON_KEY", ""))).strip()
 
