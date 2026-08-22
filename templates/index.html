@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Comments Downloader & Excel Exporter</title>
-    <meta name="description" content="Công cụ tải và xuất toàn bộ bình luận video TikTok ra file Excel hoàn toàn tự động, nhanh chóng và chính xác.">
+    <title>TikTok Comments Downloader & Excel Exporter Pro</title>
+    <meta name="description" content="Công cụ cào và xuất toàn bộ bình luận video TikTok ra file Excel hoàn toàn tự động, nhanh chóng và chuyên nghiệp.">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,9 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- Google Identity Services (GSI) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -21,79 +24,171 @@
     <!-- Background Gradient Glows -->
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <div class="container">
-        <!-- Header Section -->
-        <header class="header">
-            <div class="brand-badge">
-                <i class="fab fa-tiktok"></i> TikTok Comments Exporter
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="brand-logo">
+                    <i class="fab fa-tiktok"></i>
+                </div>
+                <div class="brand-info">
+                    <span class="brand-name">TikTok Scraper <span class="badge-pro">PRO</span></span>
+                    <span class="brand-tagline">Export Comments to Excel</span>
+                </div>
             </div>
-            <h1 class="title">Tải & Xuất Bình Luận TikTok Ra Excel</h1>
-            <p class="subtitle">Nhập link video để cào toàn bộ bình luận gốc và câu trả lời chỉ trong vài giây</p>
-        </header>
+
+            <div class="nav-actions">
+                <!-- User Logged Out View -->
+                <div id="navGuestView" class="nav-auth">
+                    <button type="button" id="navLoginBtn" class="btn-nav-login">
+                        <i class="fab fa-google"></i> Đăng nhập Google
+                    </button>
+                </div>
+
+                <!-- User Logged In View -->
+                <div id="navUserView" class="nav-user hidden">
+                    <!-- Credit Badge -->
+                    <div class="credit-badge" id="creditBadge" title="Số lượt cào khả dụng">
+                        <i class="fas fa-bolt text-warning"></i>
+                        <span class="credit-count" id="navCreditCount">3</span>
+                        <span class="credit-label">lượt</span>
+                        <button type="button" id="btnTopupNav" class="btn-topup-mini" title="Nạp thêm lượt">+</button>
+                    </div>
+
+                    <!-- User Profile Dropdown -->
+                    <div class="user-dropdown-wrapper">
+                        <button type="button" id="userMenuBtn" class="user-avatar-btn">
+                            <img id="navUserAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=TikTok" alt="avatar" class="nav-avatar">
+                            <span id="navUserName" class="nav-username">User</span>
+                            <i class="fas fa-chevron-down nav-dropdown-icon"></i>
+                        </button>
+                        <div id="userDropdown" class="user-dropdown-menu hidden">
+                            <div class="dropdown-header">
+                                <strong id="dropdownName">Tên người dùng</strong>
+                                <span id="dropdownEmail">email@example.com</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button type="button" id="dropdownTopupBtn" class="dropdown-item">
+                                <i class="fas fa-gem text-primary"></i> Nâng cấp VIP / Nạp lượt
+                            </button>
+                            <div class="dropdown-divider"></div>
+                            <button type="button" id="btnLogout" class="dropdown-item text-danger">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Platform Tabs Switcher -->
+        <div class="platform-tabs">
+            <button type="button" class="tab-item active" data-platform="tiktok" id="tabTikTok">
+                <i class="fab fa-tiktok"></i> TikTok
+                <span class="tab-indicator"></span>
+            </button>
+            <button type="button" class="tab-item tab-coming-soon" data-platform="facebook" id="tabFacebook">
+                <i class="fab fa-facebook"></i> Facebook
+                <span class="badge-coming-soon">Đang phát triển</span>
+            </button>
+        </div>
 
         <!-- Main Card Section -->
         <main class="main-card">
-            <!-- Input Form -->
-            <form id="scrapeForm" class="scrape-form">
-                <div class="input-group">
-                    <div class="input-icon">
-                        <i class="fas fa-link"></i>
-                    </div>
-                    <input 
-                        type="text" 
-                        id="videoUrl" 
-                        name="url" 
-                        placeholder="Dán link video TikTok vào đây (vd: https://www.tiktok.com/@user/video/...)" 
-                        required 
-                        autocomplete="off"
-                    >
-                    <button type="button" id="pasteBtn" class="btn-icon" title="Dán từ Clipboard">
-                        <i class="fas fa-paste"></i>
-                    </button>
-                    <button type="button" id="clearBtn" class="btn-icon" title="Xóa">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+            <!-- TikTok Scraper View -->
+            <div id="tiktokPlatformView">
+                <header class="header">
+                    <h1 class="title">Tải & Xuất Bình Luận TikTok Ra Excel</h1>
+                    <p class="subtitle">Trích xuất toàn bộ bình luận gốc và câu trả lời chỉ trong vài giây. Thử miễn phí không cần đăng nhập!</p>
+                </header>
 
-                <!-- Sample Link Fast Fill -->
-                <div class="quick-examples">
-                    <span class="quick-label">Mẫu thử:</span>
-                    <button type="button" class="btn-sample" data-url="https://www.tiktok.com/@batamheslayy/video/7676330375433571600">
-                        <i class="fas fa-play-circle"></i> Video Mẫu (112 Cmt)
-                    </button>
-                </div>
-
-                <!-- Options Grid -->
-                <div class="options-grid">
-                    <div class="option-item">
-                        <label for="maxComments"><i class="fas fa-list-ol"></i> Giới hạn bình luận:</label>
-                        <select id="maxComments" name="max_comments">
-                            <option value="0" selected>Toàn bộ (Tất cả)</option>
-                            <option value="50">50 bình luận đầu</option>
-                            <option value="100">100 bình luận đầu</option>
-                            <option value="300">300 bình luận đầu</option>
-                            <option value="500">500 bình luận đầu</option>
-                        </select>
+                <!-- Input Form -->
+                <form id="scrapeForm" class="scrape-form">
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="videoUrl" 
+                            name="url" 
+                            placeholder="Dán link video TikTok vào đây (vd: https://www.tiktok.com/@user/video/...)" 
+                            required 
+                            autocomplete="off"
+                        >
+                        <button type="button" id="pasteBtn" class="btn-icon" title="Dán từ Clipboard">
+                            <i class="fas fa-paste"></i>
+                        </button>
+                        <button type="button" id="clearBtn" class="btn-icon" title="Xóa">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
 
-                    <div class="option-item toggle-item">
-                        <label for="fetchReplies">
-                            <i class="fas fa-reply-all"></i> Lấy cả câu trả lời con (Replies)
-                        </label>
-                        <label class="switch">
-                            <input type="checkbox" id="fetchReplies" name="fetch_replies" checked>
-                            <span class="slider round"></span>
-                        </label>
+                    <!-- Quick Sample Links -->
+                    <div class="quick-examples">
+                        <span class="quick-label">Mẫu thử nhanh:</span>
+                        <button type="button" class="btn-sample" data-url="https://www.tiktok.com/@batamheslayy/video/7676330375433571600">
+                            <i class="fas fa-play-circle"></i> Video Mẫu (112 Cmt)
+                        </button>
                     </div>
-                </div>
 
-                <!-- Submit Button -->
-                <button type="submit" id="submitBtn" class="btn-primary">
-                    <span class="btn-text"><i class="fas fa-bolt"></i> Bắt Đầu Tải Bình Luận</span>
-                    <span class="btn-spinner hidden"><i class="fas fa-spinner fa-spin"></i> Đang xử lý...</span>
-                </button>
-            </form>
+                    <!-- Options Grid -->
+                    <div class="options-grid">
+                        <div class="option-item">
+                            <label for="maxComments">
+                                <i class="fas fa-list-ol"></i> Giới hạn bình luận:
+                            </label>
+                            <select id="maxComments" name="max_comments">
+                                <option value="0" selected>Toàn bộ (Tất cả bình luận)</option>
+                                <option value="50">50 bình luận đầu</option>
+                                <option value="100">100 bình luận đầu</option>
+                                <option value="300">300 bình luận đầu</option>
+                                <option value="500">500 bình luận đầu</option>
+                            </select>
+                            <span class="option-hint" id="guestHint">Khách chưa đăng nhập: Cào thử 50 cmt miễn phí</span>
+                        </div>
+
+                        <div class="option-item toggle-item">
+                            <label for="fetchReplies">
+                                <i class="fas fa-reply-all"></i> Lấy cả câu trả lời con (Replies)
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="fetchReplies" name="fetch_replies" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="btn-primary">
+                        <span class="btn-text"><i class="fas fa-bolt"></i> Bắt Đầu Tải Bình Luận</span>
+                        <span class="btn-spinner hidden"><i class="fas fa-spinner fa-spin"></i> Đang cào dữ liệu...</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Facebook Inactive Placeholder View -->
+            <div id="facebookPlatformView" class="facebook-view hidden">
+                <div class="coming-soon-card">
+                    <div class="coming-soon-icon">
+                        <i class="fab fa-facebook"></i>
+                    </div>
+                    <h2>Tính Năng Cào Bình Luận Facebook</h2>
+                    <p>Hệ thống trích xuất bình luận Facebook Fanpage & Bài viết đang được hoàn thiện và sẽ ra mắt trong bản cập nhật tới!</p>
+                    <div class="coming-soon-form">
+                        <input type="text" placeholder="https://www.facebook.com/..." disabled>
+                        <button type="button" disabled class="btn-disabled"><i class="fas fa-lock"></i> Sắp Ra Mắt</button>
+                    </div>
+                    <button type="button" id="btnBackToTikTok" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Quay lại cào TikTok
+                    </button>
+                </div>
+            </div>
 
             <!-- Progress & Status Box -->
             <div id="statusSection" class="status-section hidden">
@@ -145,9 +240,9 @@
                             <p>Đã tạo sẵn file Excel chuyên nghiệp với đầy đủ thông tin.</p>
                         </div>
                     </div>
-                    <a id="downloadBtn" href="#" class="btn-download">
+                    <button type="button" id="downloadBtn" class="btn-download">
                         <i class="fas fa-file-excel"></i> Tải File Excel Ngay (.xlsx)
-                    </a>
+                    </button>
                 </div>
             </div>
 
@@ -155,6 +250,9 @@
             <div id="previewSection" class="preview-section hidden">
                 <div class="preview-header">
                     <h3><i class="fas fa-eye"></i> Xem trước dữ liệu trực tiếp (<span id="previewCount">0</span> cmt)</h3>
+                    <button type="button" id="previewDownloadBtn" class="btn-preview-download">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </button>
                 </div>
                 <div class="table-container">
                     <table class="preview-table">
@@ -181,6 +279,111 @@
             <p>© 2026 TikTok Comments Scraper Tool • Tự động hóa 100% không giới hạn</p>
         </footer>
     </div>
+
+    <!-- ============================================================= -->
+    <!-- MODAL 1: GOOGLE AUTH MODAL (PAYWALL / GATE)                   -->
+    <!-- ============================================================= -->
+    <div id="authModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <button type="button" class="modal-close" id="closeAuthModal">&times;</button>
+            <div class="modal-header">
+                <div class="modal-badge-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h2>Đăng Nhập Để Tải File Excel</h2>
+                <p>Đăng nhập tài khoản Google để nhận ngay <strong>3 lượt cào miễn phí</strong> và tải file Excel vừa cào!</p>
+            </div>
+
+            <div class="auth-benefit-list">
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle text-success"></i> Tải ngay file Excel 50 bình luận vừa xem
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle text-success"></i> Tặng sẵn 3 lượt cào miễn phí
+                </div>
+                <div class="benefit-item">
+                    <i class="fas fa-check-circle text-success"></i> Dữ liệu được giữ nguyên, không cần cào lại
+                </div>
+            </div>
+
+            <div class="auth-actions">
+                <!-- Google Official Sign In Button Container -->
+                <div id="g_id_signin_container" class="g-signin-box"></div>
+
+                <!-- Fallback / Demo Login Button -->
+                <div class="auth-divider"><span>hoặc trải nghiệm nhanh</span></div>
+                <button type="button" id="btnDemoLogin" class="btn-demo-login">
+                    <i class="fas fa-user-astronaut"></i> Đăng Nhập Dùng Thử Ngay (Demo 1-Click)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- MODAL 2: TOP-UP / VIP UPGRADE MODAL                           -->
+    <!-- ============================================================= -->
+    <div id="topupModal" class="modal-overlay hidden">
+        <div class="modal-card modal-pricing">
+            <button type="button" class="modal-close" id="closeTopupModal">&times;</button>
+            <div class="modal-header">
+                <div class="modal-badge-icon vip-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h2>Nâng Cấp Lượt Cào & Gói VIP</h2>
+                <p>Mở khóa cào Full không giới hạn bình luận & toàn bộ câu trả lời con</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Gói 1 -->
+                <div class="pricing-card">
+                    <div class="pricing-title">Gói Cơ Bản</div>
+                    <div class="pricing-price">20.000đ</div>
+                    <div class="pricing-feature"><strong>20 Lượt</strong> Cào Full Video</div>
+                    <div class="pricing-feature">Xuất file Excel đầy đủ</div>
+                    <button type="button" class="btn-buy-package" data-amount="20000" data-pkg="20 Lượt">Chọn Gói</button>
+                </div>
+
+                <!-- Gói 2 (Popular) -->
+                <div class="pricing-card popular">
+                    <div class="popular-badge">Phổ Biến Nhất</div>
+                    <div class="pricing-title">Gói Tiết Kiệm</div>
+                    <div class="pricing-price">50.000đ</div>
+                    <div class="pricing-feature"><strong>60 Lượt</strong> Cào Full Video</div>
+                    <div class="pricing-feature">Cào hết replies không giới hạn</div>
+                    <div class="pricing-feature">Hỗ trợ ưu tiên tốc độ cao</div>
+                    <button type="button" class="btn-buy-package btn-buy-popular" data-amount="50000" data-pkg="60 Lượt">Chọn Gói</button>
+                </div>
+
+                <!-- Gói 3 -->
+                <div class="pricing-card">
+                    <div class="pricing-title">Gói VIP Tháng</div>
+                    <div class="pricing-price">99.000đ</div>
+                    <div class="pricing-feature"><strong>Không Giới Hạn</strong> (30 Ngày)</div>
+                    <div class="pricing-feature">Tốc độ tối đa + VIP Support</div>
+                    <button type="button" class="btn-buy-package" data-amount="99000" data-pkg="VIP Tháng">Chọn Gói</button>
+                </div>
+            </div>
+
+            <!-- VietQR Payment Info Mockup -->
+            <div id="qrPaymentSection" class="qr-section hidden">
+                <div class="qr-info">
+                    <h4><i class="fas fa-qrcode"></i> Quét mã VietQR để thanh toán tự động:</h4>
+                    <p id="qrPkgName">Gói: 50.000đ - 60 Lượt</p>
+                    <div class="qr-mockup">
+                        <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=TIKTOK_SCRAPER_VIP" alt="QR Code">
+                    </div>
+                    <p class="qr-note"><i class="fas fa-info-circle"></i> Hệ thống tự động kích hoạt lượt cào trong vòng 30 giây sau khi chuyển khoản.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pass backend config to JS -->
+    <script>
+        window.APP_CONFIG = {
+            googleClientId: "{{ google_client_id }}"
+        };
+    </script>
 
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
