@@ -430,8 +430,8 @@ async function initWithLocalSdk() {
       return;
     }
 
-    // Block heavy resources to speed up loading
-    if (["image", "media", "font"].includes(resourceType)) {
+    // Block heavy resources to speed up loading significantly
+    if (["image", "media", "font", "stylesheet"].includes(resourceType)) {
       await request.abort();
       return;
     }

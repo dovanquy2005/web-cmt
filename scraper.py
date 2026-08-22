@@ -105,7 +105,7 @@ def ensure_server_running(server_url: str = DEFAULT_SERVER_URL):
             creationflags=creationflags
         )
 
-    for _ in range(60):
+    for _ in range(160):
         time.sleep(0.5)
         if check_server_health(server_url):
             return
@@ -124,69 +124,27 @@ def cleanup_server():
 atexit.register(cleanup_server)
 
 
-def build_comments_url(video_id: str, cursor: int = 0, count: int = 50) -> str:
+def build_comments_url(video_id: str, cursor: int = 0, count: int = 20) -> str:
     params = {
         "aid": "1988",
         "app_language": "en",
         "app_name": "tiktok_web",
-        "aweme_id": video_id,
-        "browser_language": "en-US",
-        "browser_name": "Mozilla",
-        "browser_online": "true",
-        "browser_platform": "MacIntel",
-        "browser_version": "5.0",
-        "channel": "tiktok_web",
-        "cookie_enabled": "true",
+        "aweme_id": str(video_id),
         "count": str(count),
-        "cursor": str(cursor),
-        "device_id": DEVICE_ID,
-        "device_platform": "web_pc",
-        "focus_state": "true",
-        "history_len": "2",
-        "is_fullscreen": "false",
-        "is_page_visible": "true",
-        "language": "en",
-        "os": "mac",
-        "priority_region": "US",
-        "region": "US",
-        "screen_height": "1080",
-        "screen_width": "1920",
-        "tz_name": "America/New_York",
-        "webcast_language": "en",
+        "cursor": str(cursor)
     }
     return f"https://www.tiktok.com/api/comment/list/?{urllib.parse.urlencode(params)}"
 
 
-def build_replies_url(video_id: str, comment_id: str, cursor: int = 0, count: int = 50) -> str:
+def build_replies_url(video_id: str, comment_id: str, cursor: int = 0, count: int = 20) -> str:
     params = {
         "aid": "1988",
         "app_language": "en",
         "app_name": "tiktok_web",
-        "item_id": video_id,
-        "comment_id": comment_id,
-        "browser_language": "en-US",
-        "browser_name": "Mozilla",
-        "browser_online": "true",
-        "browser_platform": "MacIntel",
-        "browser_version": "5.0",
-        "channel": "tiktok_web",
-        "cookie_enabled": "true",
+        "item_id": str(video_id),
+        "comment_id": str(comment_id),
         "count": str(count),
-        "cursor": str(cursor),
-        "device_id": DEVICE_ID,
-        "device_platform": "web_pc",
-        "focus_state": "true",
-        "history_len": "2",
-        "is_fullscreen": "false",
-        "is_page_visible": "true",
-        "language": "en",
-        "os": "mac",
-        "priority_region": "US",
-        "region": "US",
-        "screen_height": "1080",
-        "screen_width": "1920",
-        "tz_name": "America/New_York",
-        "webcast_language": "en",
+        "cursor": str(cursor)
     }
     return f"https://www.tiktok.com/api/comment/list/reply/?{urllib.parse.urlencode(params)}"
 
@@ -318,6 +276,13 @@ def scrape_comments_generator(video_id: str, max_comments: int = 0, fetch_replie
             data = {}
 
         comments_list = data.get("comments") or []
+        if not comments_list and page_num == 1:
+            # Thử lại thêm 1 lần nữa sau 2s đề phòng server vừa khởi động
+            time.sleep(2.0)
+            data = fetch_tiktok_api(url, server_url=server_url)
+            if isinstance(data, dict):
+                comments_list = data.get("comments") or []
+
         if not comments_list:
             yield {
                 "type": "log",
