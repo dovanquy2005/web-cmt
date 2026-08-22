@@ -245,13 +245,27 @@ async function initBrowser() {
       fs.mkdirSync(USER_DATA_DIR, { recursive: true });
     }
 
-    browser = await puppeteer.launch({
+    const launchOpts = {
       headless: "new",
       executablePath: getChromePath(),
       args: browserArgs,
       userDataDir: USER_DATA_DIR,
       ignoreDefaultArgs: ["--enable-automation"],
-    });
+    };
+
+    try {
+      browser = await puppeteer.launch(launchOpts);
+    } catch (launchErr) {
+      if (launchErr.message.includes("already running") || launchErr.message.includes("EPERM") || launchErr.message.includes("userDataDir")) {
+        console.log("[Server] Profile locked, switching to fresh isolated profile directory...");
+        const isolatedDir = path.join(path.dirname(USER_DATA_DIR), `.chrome-profile-${Date.now()}`);
+        fs.mkdirSync(isolatedDir, { recursive: true });
+        launchOpts.userDataDir = isolatedDir;
+        browser = await puppeteer.launch(launchOpts);
+      } else {
+        throw launchErr;
+      }
+    }
 
     page = await browser.newPage();
 
