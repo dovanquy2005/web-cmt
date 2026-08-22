@@ -195,23 +195,6 @@ def auth_google():
         return jsonify({"status": "error", "message": f"Lỗi xác thực Google: {str(e)}"}), 500
 
 
-@app.route("/api/auth/demo-login", methods=["POST"])
-def auth_demo_login():
-    """Hỗ trợ đăng nhập nhanh chế độ dùng thử khi chưa cấu hình Google Client ID"""
-    user = db.get_or_create_demo_user()
-    session["user_id"] = user["id"]
-    return jsonify({
-        "status": "ok",
-        "message": "Đăng nhập thử nghiệm thành công! Bạn nhận được 3 lượt cào miễn phí.",
-        "user": {
-            "id": user["id"],
-            "email": user["email"],
-            "name": user["name"],
-            "avatar": user["avatar"],
-            "credits": user["credits"],
-            "is_vip": bool(user["is_vip"])
-        }
-    })
 
 
 @app.route("/api/auth/logout", methods=["POST"])

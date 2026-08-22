@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modals
     const authModal = document.getElementById('authModal');
     const closeAuthModal = document.getElementById('closeAuthModal');
-    const btnDemoLogin = document.getElementById('btnDemoLogin');
 
     const topupModal = document.getElementById('topupModal');
     const closeTopupModal = document.getElementById('closeTopupModal');
@@ -226,22 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Demo Login 1-Click
-    btnDemoLogin.addEventListener('click', async () => {
-        try {
-            const resp = await fetch('/api/auth/demo-login', { method: 'POST' });
-            const data = await resp.json();
-            if (data.status === 'ok') {
-                currentUser = data.user;
-                updateUserUI(true);
-                authModal.classList.add('hidden');
-                showToast('🚀 Đăng nhập thử nghiệm thành công! Nhận 3 lượt cào miễn phí.', 'success');
-                handlePostLoginStateRetention();
-            }
-        } catch (err) {
-            showToast('Lỗi đăng nhập thử nghiệm!', 'error');
-        }
-    });
+
 
     // Logout
     btnLogout.addEventListener('click', async () => {
