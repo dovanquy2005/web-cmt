@@ -3,3 +3,4 @@ curl_cffi>=0.16.0
 pandas>=2.0.0
 openpyxl>=3.1.0
 requests>=2.30.0
+supabase>=2.0.0
