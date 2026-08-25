@@ -16,6 +16,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .chrome-profile/
+.chrome-profile-*/
+
 
 # Downloads & Excel
 downloads/*.xlsx

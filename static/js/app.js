@@ -227,6 +227,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    // Quick Demo Login Handler
+    const btnDemoLogin = document.getElementById('btnDemoLogin');
+    if (btnDemoLogin) {
+        btnDemoLogin.addEventListener('click', async () => {
+            try {
+                const resp = await fetch('/api/auth/quick-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'dovanquy2005@gmail.com', name: 'Đỗ Văn Quý' })
+                });
+                const data = await resp.json();
+                if (data.status === 'ok') {
+                    currentUser = data.user;
+                    updateUserUI(true);
+                    authModal.classList.add('hidden');
+                    showToast(`🎉 Đăng nhập thành công! Bạn có ${currentUser.credits} lượt cào.`, 'success');
+                    handlePostLoginStateRetention();
+                } else {
+                    showToast(data.message || 'Đăng nhập thất bại!', 'error');
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối máy chủ xác thực!', 'error');
+            }
+        });
+    }
+
     // Logout
     btnLogout.addEventListener('click', async () => {
         try {

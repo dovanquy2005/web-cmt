@@ -97,9 +97,13 @@ def ensure_server_running(server_url: str = DEFAULT_SERVER_URL):
         if r.status_code == 200:
             pass  # server is currently initializing, just wait
     except Exception:
+        node_env = os.environ.copy()
+        node_env["PORT"] = "8080"
+        node_env["SIGNATURE_PORT"] = "8080"
         _SERVER_PROCESS = subprocess.Popen(
             ["node", server_script],
             cwd=server_cwd,
+            env=node_env,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             creationflags=creationflags

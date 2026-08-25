@@ -197,6 +197,31 @@ def auth_google():
 
 
 
+@app.route("/api/auth/quick-login", methods=["POST"])
+def auth_quick_login():
+    data = request.get_json() or {}
+    email = data.get("email", "").strip() or "dovanquy2005@gmail.com"
+    name = data.get("name", "").strip() or email.split("@")[0]
+    google_id = f"user_{email.replace('@', '_').replace('.', '_')}"
+    avatar = f"https://api.dicebear.com/7.x/bottts/svg?seed={email}"
+
+    user = db.get_or_create_google_user(google_id, email, name, avatar)
+    session["user_id"] = user["id"]
+
+    return jsonify({
+        "status": "ok",
+        "message": f"Đăng nhập thành công với tài khoản {email}!",
+        "user": {
+            "id": user["id"],
+            "email": user["email"],
+            "name": user["name"],
+            "avatar": user["avatar"],
+            "credits": user["credits"],
+            "is_vip": bool(user["is_vip"])
+        }
+    })
+
+
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
     session.pop("user_id", None)

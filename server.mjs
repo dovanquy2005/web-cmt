@@ -32,7 +32,7 @@ import { getXBogus } from "./xbogus.mjs";
 puppeteer.use(StealthPlugin());
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.SIGNATURE_PORT || (process.env.PORT && process.env.PORT !== "5000" ? process.env.PORT : 8080);
 
 // Custom user data directory to avoid filling /tmp
 const USER_DATA_DIR = path.join(__dirname, ".chrome-profile");
